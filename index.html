@@ -1,94 +1,61 @@
 <!doctype html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>One Light</title>
-  <meta name="theme-color" content="#0f172a" />
-  <meta name="description" content="A daily 5-minute global meditation at 12:00 PM Eastern Time." />
-  <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="icon" href="icon-192.png" />
-  <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="stylesheet" href="styles.css" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>One Light</title>
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+body{font-family:sans-serif;text-align:center;background:#f5f7fa;margin:0;padding:40px}
+button{padding:14px 20px;margin:10px;border-radius:12px;border:none;background:#0f172a;color:white;font-size:16px}
+#session{display:none}
+</style>
 </head>
 <body>
-  <main class="app-shell">
-    <section class="hero-card">
-      <div class="badge">Daily at 12:00 PM Eastern Time</div>
-      <h1>One Light</h1>
-      <p class="subtitle">A daily 5-minute global meditation to pause, turn inward, and hold gratitude, love, and compassion for all creation.</p>
 
-      <div class="cta-row">
-        <button id="installButton" class="primary-btn">Add to Home Screen</button>
-        <button id="shareButton" class="secondary-btn">Share Link</button>
-      </div>
+<h1>One Light</h1>
+<p>A daily 5-minute global meditation</p>
 
-      <div class="stats-grid">
-        <div class="stat-card">
-          <span class="stat-label">Status</span>
-          <strong id="statusText">Next session</strong>
-        </div>
-        <div class="stat-card">
-          <span class="stat-label">Countdown</span>
-          <strong id="countdownText">--</strong>
-        </div>
-        <div class="stat-card">
-          <span class="stat-label">Duration</span>
-          <strong>5 min</strong>
-        </div>
-      </div>
+<div id="main">
+<button onclick="startSession()">Begin 5-Minute Session</button>
+</div>
 
-      <div class="message-card">
-        <div class="message-title">Welcome message</div>
-        <p>Stop, take a moment to turn inward and just be.</p>
-        <p>Concentrate on gratitude, love, and compassion for all creation.</p>
-        <p>Let the sound of ocean waves guide your breathing and bring you into stillness.</p>
-      </div>
-    </section>
+<div id="session">
+<h2>Session in progress</h2>
+<p id="timer">5:00</p>
+<button onclick="stopSession()">End</button>
+</div>
 
-    <section class="details-grid">
-      <article class="panel">
-        <h2>Today's timing</h2>
-        <div class="timing-box">
-          <div>
-            <div class="small-label">Eastern Time reference</div>
-            <div id="easternTime" class="strong-line">--</div>
-          </div>
-          <div>
-            <div class="small-label">Your local time</div>
-            <div id="localTime" class="strong-line">--</div>
-          </div>
-          <div>
-            <div class="small-label">Meditation ends</div>
-            <div id="endTime" class="strong-line">--</div>
-          </div>
-        </div>
+<audio id="ocean" loop>
+<source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73467.mp3?filename=ocean-waves-ambient-110624.mp3">
+</audio>
 
-        <div class="button-stack">
-          <button id="notifyButton" class="primary-btn">Enable 5-minute reminder</button>
-          <button id="calendarButton" class="secondary-btn">Add next session to calendar</button>
-        </div>
+<script>
+let timerInterval;
+let time = 300;
 
-        <div id="notificationStatus" class="note-box">Turn on a local reminder so your device helps you join on time.</div>
-      </article>
+function startSession(){
+document.getElementById('main').style.display='none';
+document.getElementById('session').style.display='block';
+document.getElementById('ocean').play();
 
-      <article class="panel">
-        <h2>Join the intention</h2>
-        <div class="message-card alt">
-          <div class="message-title">Suggested 5-minute focus</div>
-          <p>Stop. Turn inward and simply be. Breathe in slowly, and breathe out gently. Hold gratitude, love, and compassion for all creation. Imagine ocean waves moving in and out with your breath, bringing calm, clarity, and peace.</p>
-        </div>
+timerInterval=setInterval(()=>{
+time--;
+let m=Math.floor(time/60);
+let s=time%60;
+document.getElementById('timer').innerText=m+":"+String(s).padStart(2,'0');
+if(time<=0){stopSession();}
+},1000);
+}
 
-        <div class="message-card alt">
-          <div class="message-title">Share message</div>
-          <p>Join me each day at 12:00 PM Eastern for 5 minutes of stillness, gratitude, love, and compassion. One moment. Shared across the world. One Light.</p>
-        </div>
+function stopSession(){
+clearInterval(timerInterval);
+document.getElementById('ocean').pause();
+time=300;
+document.getElementById('main').style.display='block';
+document.getElementById('session').style.display='none';
+}
+</script>
 
-        <div id="installStatus" class="note-box">Install this app on your home screen and return each day with one tap.</div>
-      </article>
-    </section>
-  </main>
-
-  <script src="app.js"></script>
 </body>
 </html>
