@@ -29,7 +29,7 @@ oceanAudio.loop = true;
 let oceanPlaying = false;
 
 function toggleOceanSound() {
-  consconst btn = document.getElementById("soundButton"
+  const btn = document.getElementById("soundButton");
 
   if (!oceanPlaying) {
     oceanAudio.play();
