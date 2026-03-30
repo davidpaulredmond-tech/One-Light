@@ -41,3 +41,4 @@ function toggleOceanSound() {
     oceanPlaying = false;
   }
 }
+const btn = document.getElementById("soundButton");
