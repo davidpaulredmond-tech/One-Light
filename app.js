@@ -23,7 +23,7 @@ function startSession(){sessionInterval&&clearInterval(sessionInterval),secondsR
 function endSession(completed=!1){sessionInterval&&clearInterval(sessionInterval),sessionInterval=null,stopOceanSound(),sessionCard.classList.remove("active"),sessionTimer.textContent="5:00",sessionIntro.textContent=completed?"Thank you for being part of this shared stillness.":"When you are ready, begin your 5-minute session.",beginButton.style.display="inline-block",endButton.style.display="none"}
 async function installApp(){if(!deferredPrompt)return void(installStatus.textContent=getInstallInstructions());await deferredPrompt.prompt();const choice=await deferredPrompt.userChoice;installStatus.textContent=choice&&"accepted"===choice.outcome?"The app is being added to the home screen.":"Installation was dismissed for now.",deferredPrompt=null}
 window.addEventListener("beforeinstallprompt",event=>{event.preventDefault(),deferredPrompt=event}),"serviceWorker"in navigator&&window.addEventListener("load",()=>{navigator.serviceWorker.register("./sw.js?v=2").catch(()=>{})}),installButton.addEventListener("click",installApp),shareButton.addEventListener("click",copyShareLink),notifyButton.addEventListener("click",enableNotifications),calendarButton.addEventListener("click",downloadCalendarEvent),beginButton.addEventListener("click",startSession),endButton.addEventListener("click",()=>endSession(!1)),soundButton.addEventListener("click",()=>{soundEnabled=!soundEnabled,setSoundButton(),soundEnabled||stopOceanSound()}),setSoundButton(),updateUI(),setInterval(updateUI,1e3);
-let oceanAudio = new Audio("ocean-v2.mp3");
+let oceanAudio = new Audio("ocean-v2.mp3?v=2");
 oceanAudio.loop = true;
 oceanAudio.volume = 0.9;
 
