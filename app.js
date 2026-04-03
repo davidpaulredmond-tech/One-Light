@@ -109,19 +109,26 @@ function toggleOceanSound() {
   if (!soundButton) return;
 
   if (!oceanPlaying) {
-    oceanAudio.play().then(() => {
-      oceanPlaying = true;
-      soundButton.innerText = "Ocean Sound: On";
-    }).catch(() => {
-      if (installStatus) {
-        installStatus.innerText = "Audio could not start. Tap again.";
-      }
-    });
+    oceanAudio.currentTime = 0;
+
+    const playPromise = oceanAudio.play();
+
+    if (playPromise !== undefined) {
+      playPromise.then(() => {
+        oceanPlaying = true;
+        soundButton.innerText = "Ocean Sound: On";
+      }).catch((error) => {
+        console.log("Audio blocked:", error);
+      });
+    }
+
   } else {
     oceanAudio.pause();
     oceanAudio.currentTime = 0;
     oceanPlaying = false;
     soundButton.innerText = "Ocean Sound: Off";
+  }
+}
   }
 }
 function copyShareLink() {
