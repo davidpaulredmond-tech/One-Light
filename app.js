@@ -5,9 +5,11 @@ const SESSION_SECONDS = SESSION_MINUTES * 60;
 
 const statusText = document.getElementById("statusText");
 const countdownText = document.getElementById("countdownText");
-const easternTimeText = document.getElementById("easternTimeText");
-const localTimeText = document.getElementById("localTimeText");
-const endTimeText = document.getElementById("endTimeText");
+const easternTimeText = document.getElementById("easternTime");
+const localTimeText = document.getElementById("localTime");
+const endTimeText = document.getElementById("endTime");
+
+
 const sessionIntro = document.getElementById("sessionIntro");
 const sessionTimer = document.getElementById("sessionTimer");
 const beginButton = document.getElementById("beginButton");
