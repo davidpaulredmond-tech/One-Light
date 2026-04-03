@@ -2,7 +2,9 @@ const TIME_ZONE = "America/New_York";
 const START_HOUR = 12;
 const SESSION_MINUTES = 5;
 const SESSION_SECONDS = SESSION_MINUTES * 60;
-
+const endButton = document.getElementById("endButton");
+const shareButton = document.getElementById("shareButton");
+const installStatus = document.getElementById("installStatus");
 const statusText = document.getElementById("statusText");
 const countdownText = document.getElementById("countdownText");
 const easternTimeText = document.getElementById("easternTime");
@@ -47,48 +49,51 @@ function updateCountdown() {
   if (endTimeText) endTimeText.innerText = "5 minutes after session begins";
 }
 
-function startSession() {
+function endSession() {
+  if (sessionInterval) {
+    clearInterval(sessionInterval);
+    sessionInterval = null;
+  }
+
   secondsRemaining = SESSION_SECONDS;
 
-  if (sessionIntro) {
-    sessionIntro.innerText =
-      "Session in progress. Breathe slowly. Let your awareness rest in gratitude, love, and compassion.";
+  if (sessionTimer) {
+    sessionTimer.innerText = "5:00";
   }
 
-  sessionInterval = setInterval(() => {
-    secondsRemaining--;
+  if (sessionIntro) {
+    sessionIntro.innerText = "When you are ready, begin your 5-minute session.";
+  }
 
-    const m = Math.floor(secondsRemaining / 60);
-    const s = secondsRemaining % 60;
-
-    if (sessionTimer) {
-      sessionTimer.innerText = m + ":" + (s < 10 ? "0" : "") + s;
-    }
-
-    if (secondsRemaining <= 0) {
-      clearInterval(sessionInterval);
-      sessionInterval = null;
-    }
-  }, 1000);
+  if (beginButton) beginButton.style.display = "";
+  if (endButton) endButton.style.display = "none";
 }
 
-function toggleOceanSound() {
-  if (!soundButton) return;
+function copyShareLink() {
+  const url = window.location.origin + "/";
+  const text =
+    "Join me each day at 12:00 PM Eastern for 5 minutes of stillness, gratitude, love, and compassion. One moment. Shared across the world. One Light.";
 
-  if (!oceanPlaying) {
-    oceanAudio.play();
-    oceanPlaying = true;
-    soundButton.innerText = "Ocean Sound: On";
-  } else {
-    oceanAudio.pause();
-    oceanAudio.currentTime = 0;
-    oceanPlaying = false;
-    soundButton.innerText = "Ocean Sound: Off";
+  if (navigator.share) {
+    navigator.share({
+      title: "One Light",
+      text: text,
+      url: url
+    }).catch(() => {});
+    return;
   }
+
+  navigator.clipboard.writeText(url).then(() => {
+    if (installStatus) installStatus.innerText = "Share link copied.";
+  }).catch(() => {
+    if (installStatus) installStatus.innerText = "Could not copy share link.";
+  });
 }
 
 if (beginButton) beginButton.addEventListener("click", startSession);
+if (endButton) endButton.addEventListener("click", endSession);
 if (soundButton) soundButton.addEventListener("click", toggleOceanSound);
+if (shareButton) shareButton.addEventListener("click", copyShareLink);
 
 setInterval(updateCountdown, 1000);
 updateCountdown();
