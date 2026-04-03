@@ -68,7 +68,62 @@ function endSession() {
   if (beginButton) beginButton.style.display = "";
   if (endButton) endButton.style.display = "none";
 }
+function startSession() {
+  if (sessionInterval) {
+    clearInterval(sessionInterval);
+    sessionInterval = null;
+  }
 
+  secondsRemaining = SESSION_SECONDS;
+
+  if (sessionTimer) {
+    sessionTimer.innerText = "5:00";
+  }
+
+  if (sessionIntro) {
+    sessionIntro.innerText =
+      "Session in progress. Breathe slowly. Let your awareness rest in gratitude, love, and compassion.";
+  }
+
+  if (beginButton) beginButton.style.display = "none";
+  if (endButton) endButton.style.display = "";
+
+  sessionInterval = setInterval(() => {
+    secondsRemaining--;
+
+    if (secondsRemaining <= 0) {
+      endSession();
+      return;
+    }
+
+    const m = Math.floor(secondsRemaining / 60);
+    const s = secondsRemaining % 60;
+
+    if (sessionTimer) {
+      sessionTimer.innerText = m + ":" + (s < 10 ? "0" : "") + s;
+    }
+  }, 1000);
+}
+
+function toggleOceanSound() {
+  if (!soundButton) return;
+
+  if (!oceanPlaying) {
+    oceanAudio.play().then(() => {
+      oceanPlaying = true;
+      soundButton.innerText = "Ocean Sound: On";
+    }).catch(() => {
+      if (installStatus) {
+        installStatus.innerText = "Audio could not start. Tap again.";
+      }
+    });
+  } else {
+    oceanAudio.pause();
+    oceanAudio.currentTime = 0;
+    oceanPlaying = false;
+    soundButton.innerText = "Ocean Sound: Off";
+  }
+}
 function copyShareLink() {
   const url = window.location.origin + "/";
   const text =
