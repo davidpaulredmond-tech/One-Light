@@ -1,45 +1,69 @@
-const TIME_ZONE="America/New_York",START_HOUR_ET=12,START_MINUTE_ET=0,MEDITATION_MINUTES=5;
-const statusText=document.getElementById("statusText"),countdownText=document.getElementById("countdownText"),easternTime=document.getElementById("easternTime"),localTime=document.getElementById("localTime"),endTime=document.getElementById("endTime"),notificationStatus=document.getElementById("notificationStatus"),installStatus=document.getElementById("installStatus"),installButton=document.getElementById("installButton"),shareButton=document.getElementById("shareButton"),notifyButton=document.getElementById("notifyButton"),calendarButton=document.getElementById("calendarButton"),beginButton=document.getElementById("beginButton"),endButton=document.getElementById("endButton"),soundButton=document.getElementById("soundButton"),sessionTimer=document.getElementById("sessionTimer"),sessionIntro=document.getElementById("sessionIntro"),sessionCard=document.getElementById("sessionCard");
-let deferredPrompt=null,sessionInterval=null,secondsRemaining=300,soundEnabled=false;
-function getZonedParts(date,timeZone){const parts=new Intl.DateTimeFormat("en-US",{timeZone,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hourCycle:"h23"}).formatToParts(date),map={};for(const part of parts)"literal"!==part.type&&(map[part.type]=part.value);return{year:Number(map.year),month:Number(map.month),day:Number(map.day),hour:Number(map.hour),minute:Number(map.minute),second:Number(map.second)}}
-function getTimeZoneOffsetMinutes(date,timeZone){const zoned=getZonedParts(date,timeZone),asUTC=Date.UTC(zoned.year,zoned.month-1,zoned.day,zoned.hour,zoned.minute,zoned.second);return(asUTC-date.getTime())/6e4}
-function zonedTimeToUtc(parts,timeZone){const utcGuess=Date.UTC(parts.year,parts.month-1,parts.day,parts.hour,parts.minute,parts.second),firstOffset=getTimeZoneOffsetMinutes(new Date(utcGuess),timeZone);let corrected=utcGuess-6e4*firstOffset;const secondOffset=getTimeZoneOffsetMinutes(new Date(corrected),timeZone);return firstOffset!==secondOffset&&(corrected=utcGuess-6e4*secondOffset),new Date(corrected)}
-function addDaysToZonedDate(parts,daysToAdd){const utc=new Date(Date.UTC(parts.year,parts.month-1,parts.day+daysToAdd,12,0,0));return{year:utc.getUTCFullYear(),month:utc.getUTCMonth()+1,day:utc.getUTCDate()}}
-function getMeditationWindow(now=new Date){const etNow=getZonedParts(now,TIME_ZONE),todayStart=zonedTimeToUtc({year:etNow.year,month:etNow.month,day:etNow.day,hour:START_HOUR_ET,minute:START_MINUTE_ET,second:0},TIME_ZONE),todayEnd=new Date(todayStart.getTime()+60*MEDITATION_MINUTES*1e3);if(now.getTime()<todayEnd.getTime())return{start:todayStart,end:todayEnd};const tomorrow=addDaysToZonedDate(etNow,1),tomorrowStart=zonedTimeToUtc({year:tomorrow.year,month:tomorrow.month,day:tomorrow.day,hour:START_HOUR_ET,minute:START_MINUTE_ET,second:0},TIME_ZONE);return{start:tomorrowStart,end:new Date(tomorrowStart.getTime()+60*MEDITATION_MINUTES*1e3)}}
-function formatCountdown(ms){if(ms<=0)return"Starting now";const totalSeconds=Math.floor(ms/1e3),hours=Math.floor(totalSeconds/3600),minutes=Math.floor(totalSeconds%3600/60),seconds=totalSeconds%60;return hours>0?`${hours}h ${minutes}m ${seconds}s`:`${minutes}m ${seconds}s`}
-function formatLocal(date){return new Intl.DateTimeFormat(void 0,{weekday:"long",month:"long",day:"numeric",hour:"numeric",minute:"2-digit",timeZoneName:"short"}).format(date)}
-function formatEastern(date){return new Intl.DateTimeFormat("en-US",{timeZone:TIME_ZONE,weekday:"long",month:"long",day:"numeric",hour:"numeric",minute:"2-digit",timeZoneName:"short"}).format(date)}
-function getInstallInstructions(){const ua=navigator.userAgent||"",isIOS=/iPad|iPhone|iPod/.test(ua),isAndroid=/Android/.test(ua);return isIOS?"On iPhone, tap Share, then Add to Home Screen.":isAndroid?"On Android, tap the browser menu, then Add to Home screen or Install app.":"In your browser, choose Install app or Add to Home Screen."}
-function updateUI(){const now=new Date,windowData=getMeditationWindow(now),msUntilStart=windowData.start.getTime()-now.getTime(),msUntilEnd=windowData.end.getTime()-now.getTime(),isLive=msUntilStart<=0&&msUntilEnd>0;statusText.textContent=isLive?"Live now":"Next session",countdownText.textContent=isLive?"In progress":formatCountdown(msUntilStart),easternTime.textContent=formatEastern(windowData.start),localTime.textContent=formatLocal(windowData.start),endTime.textContent=formatLocal(windowData.end)}
-async function copyShareLink(){const message="Join me each day at 12:00 PM Eastern for 5 minutes of stillness, gratitude, love, and compassion. One moment. Shared across the world. One Light.";if(navigator.share)try{return await navigator.share({title:"One Light",text:message,url:window.location.href}),void(installStatus.textContent="Shared successfully.")}catch(_){}try{await navigator.clipboard.writeText(window.location.href),installStatus.textContent="Link copied. Share it with anyone you would like to invite."}catch(_){installStatus.textContent="Could not copy automatically. Share the page link from your browser."}}
-async function enableNotifications(){if(!("Notification"in window))return void(notificationStatus.textContent="This browser does not support notifications.");"granted"!==(await Notification.requestPermission())?notificationStatus.textContent="Notifications were not allowed.":notificationStatus.textContent="Notifications are enabled for this browser. Keep the page installed for the best experience."}
-function downloadCalendarEvent(){const windowData=getMeditationWindow(new Date),start=windowData.start,end=windowData.end,pad=n=>String(n).padStart(2,"0"),formatICS=value=>`${value.getUTCFullYear()}${pad(value.getUTCMonth()+1)}${pad(value.getUTCDate())}T${pad(value.getUTCHours())}${pad(value.getUTCMinutes())}${pad(value.getUTCSeconds())}Z`,ics=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//One Light//Meditation//EN","BEGIN:VEVENT",`UID:onelight-${formatICS(start)}@onelight.app`,`DTSTAMP:${formatICS(new Date)}`,`DTSTART:${formatICS(start)}`,`DTEND:${formatICS(end)}`,"SUMMARY:One Light Global Meditation","DESCRIPTION:Join for 5 minutes of peace, love, and gratitude.","END:VEVENT","END:VCALENDAR"].join("\n"),blob=new Blob([ics],{type:"text/calendar;charset=utf-8"}),url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url,link.download="one-light-meditation.ics",document.body.appendChild(link),link.click(),link.remove(),URL.revokeObjectURL(url)}
-function formatSession(seconds){const m=Math.floor(seconds/60),s=seconds%60;return`${m}:${String(s).padStart(2,"0")}`}
+const TIME_ZONE = "America/New_York";
+const START_HOUR = 12;
+const SESSION_MINUTES = 5;
+const SESSION_SECONDS = SESSION_MINUTES * 60;
 
+let sessionInterval = null;
+let secondsRemaining = SESSION_SECONDS;
+let oceanPlaying = false;
 
-
-
-function startSession(){sessionInterval&&clearInterval(sessionInterval),secondsRemaining=300,sessionTimer.textContent=formatSession(secondsRemaining),sessionIntro.textContent="Session in progress. Breathe slowly. Let your awareness rest in gratitude, love, and compassion.",sessionCard.classList.add("active"),beginButton.style.display="none",endButton.style.display="inline-block",soundEnabled&&startOceanSound(),sessionInterval=setInterval(()=>{secondsRemaining-=1,sessionTimer.textContent=formatSession(secondsRemaining),secondsRemaining<=0&&endSession(!0)},1e3)}
-function endSession(completed=!1){sessionInterval&&clearInterval(sessionInterval),sessionInterval=null,stopOceanSound(),sessionCard.classList.remove("active"),sessionTimer.textContent="5:00",sessionIntro.textContent=completed?"Thank you for being part of this shared stillness.":"When you are ready, begin your 5-minute session.",beginButton.style.display="inline-block",endButton.style.display="none"}
-async function installApp(){if(!deferredPrompt)return void(installStatus.textContent=getInstallInstructions());await deferredPrompt.prompt();const choice=await deferredPrompt.userChoice;installStatus.textContent=choice&&"accepted"===choice.outcome?"The app is being added to the home screen.":"Installation was dismissed for now.",deferredPrompt=null}
-window.addEventListener("beforeinstallprompt",event=>{event.preventDefault(),deferredPrompt=event}),"serviceWorker"in navigator&&window.addEventListener("load",()=>{navigator.serviceWorker.register("./sw.js?v=2").catch(()=>{})}),installButton.addEventListener("click",installApp),shareButton.addEventListener("click",copyShareLink),notifyButton.addEventListener("click",enableNotifications),calendarButton.addEventListener("click",downloadCalendarEvent),beginButton.addEventListener("click",startSession),endButton.addEventListener("click",()=>endSession(!1)),soundButton.addEventListener("click",()=>{soundEnabled=!soundEnabled,setSoundButton(),soundEnabled||stopOceanSound()}),setSoundButton(),updateUI(),setInterval(updateUI,1e3);
-let oceanAudio = new Audio("ocean-v2.mp3?v=999");
+const oceanAudio = new Audio("ocean-v2.mp3?v=999");
 oceanAudio.loop = true;
 oceanAudio.volume = 0.9;
 
-let oceanPlaying = false;
+function updateCountdown() {
+  const now = new Date();
+  const target = new Date();
+  target.setHours(12, 0, 0, 0);
+
+  if (now > target) {
+    target.setDate(target.getDate() + 1);
+  }
+
+  const diff = target - now;
+  const seconds = Math.floor(diff / 1000);
+
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+
+  document.getElementById("countdown").innerText =
+    h + "h " + m + "m " + s + "s";
+}
+
+function startSession() {
+  secondsRemaining = SESSION_SECONDS;
+
+  sessionInterval = setInterval(() => {
+    secondsRemaining--;
+
+    const m = Math.floor(secondsRemaining / 60);
+    const s = secondsRemaining % 60;
+
+    document.getElementById("sessionTimer").innerText =
+      m + ":" + (s < 10 ? "0" : "") + s;
+
+    if (secondsRemaining <= 0) {
+      clearInterval(sessionInterval);
+    }
+  }, 1000);
+}
 
 function toggleOceanSound() {
-  const btn = document.getElementById("soundButton");
-
   if (!oceanPlaying) {
     oceanAudio.play();
-    btn.innerText = "Ocean Sound: On";
     oceanPlaying = true;
+    document.getElementById("soundButton").innerText = "Ocean Sound: On";
   } else {
     oceanAudio.pause();
-    btn.innerText = "Ocean Sound: Off";
+    oceanAudio.currentTime = 0;
     oceanPlaying = false;
+    document.getElementById("soundButton").innerText = "Ocean Sound: Off";
   }
 }
 
+document.getElementById("beginButton").addEventListener("click", startSession);
+document.getElementById("soundButton").addEventListener("click", toggleOceanSound);
+
+setInterval(updateCountdown, 1000);
+updateCountdown();
