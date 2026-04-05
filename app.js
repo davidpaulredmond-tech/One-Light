@@ -10,7 +10,10 @@ const countdownText = document.getElementById("countdownText");
 const easternTimeText = document.getElementById("easternTime");
 const localTimeText = document.getElementById("localTime");
 const endTimeText = document.getElementById("endTime");
-
+const installButton = document.getElementById("installButton");
+const notifyButton = document.getElementById("notifyButton");
+const calendarButton = document.getElementById("calendarButton");
+const notificationStatus = document.getElementById("notificationStatus");
 
 const sessionIntro = document.getElementById("sessionIntro");
 const sessionTimer = document.getElementById("sessionTimer");
@@ -144,7 +147,56 @@ function copyShareLink() {
     if (installStatus) installStatus.innerText = "Could not copy share link.";
   });
 }
+let deferredPrompt = null;
 
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  if (notificationStatus) {
+    notificationStatus.innerText = "You can add this app to your home screen.";
+  }
+});
+
+function installApp() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(() => {
+      deferredPrompt = null;
+    });
+  } else {
+    if (notificationStatus) {
+      notificationStatus.innerText = "Install option not available right now. On Android, you can also use your browser menu and choose Add to Home Screen.";
+    }
+  }
+}
+
+function enableNotifications() {
+  if (notificationStatus) {
+    notificationStatus.innerText = "Reminder feature is connected, but notification permission setup is still coming next.";
+  }
+}
+
+function addToCalendar() {
+  const start = new Date();
+  start.setHours(12, 0, 0, 0);
+
+  if (Date.now() > start.getTime()) {
+    start.setDate(start.getDate() + 1);
+  }
+
+  const end = new Date(start.getTime() + 5 * 60000);
+
+  const formatDate = (date) =>
+    date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+
+  const url =
+    "https://www.google.com/calendar/render?action=TEMPLATE" +
+    "&text=One%20Light%20Meditation" +
+    "&dates=" + formatDate(start) + "/" + formatDate(end) +
+    "&details=Join%20the%20One%20Light%205-minute%20meditation.";
+
+  window.open(url, "_blank");
+}
 if (beginButton) beginButton.addEventListener("click", startSession);
 if (endButton) endButton.addEventListener("click", endSession);
 if (soundButton) soundButton.addEventListener("click", toggleOceanSound);
