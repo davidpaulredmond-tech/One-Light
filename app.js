@@ -201,6 +201,8 @@ if (beginButton) beginButton.addEventListener("click", startSession);
 if (endButton) endButton.addEventListener("click", endSession);
 if (soundButton) soundButton.addEventListener("click", toggleOceanSound);
 if (shareButton) shareButton.addEventListener("click", copyShareLink);
-
+if (installButton) installButton.addEventListener("click", installApp);
+if (notifyButton) notifyButton.addEventListener("click", enableNotifications);
+if (calendarButton) calendarButton.addEventListener("click", addToCalendar);
 setInterval(updateCountdown, 1000);
 updateCountdown();
