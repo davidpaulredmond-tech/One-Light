@@ -24,7 +24,7 @@ let sessionInterval = null;
 let secondsRemaining = SESSION_SECONDS;
 let oceanPlaying = false;
 
-const oceanAudio = new Audio("Ocean-v2.mp3?v=999");
+const oceanAudio = new Audio("ocean-v3.mp3?v=3");
 oceanAudio.loop = true;
 oceanAudio.volume = 0.9;
 
